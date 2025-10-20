@@ -1,13 +1,17 @@
 [project]
 name = "sagepick-ai"
 version = "0.1.0"
-description = "Add your description here"
+authors = [
+    { name = "Sai Rohith", email = "sairohithgalam1@gmail.com" },
+    { name = "Geetheswar V", email = "geetheswar.edu@gmail.com" },
+    { name = "Sai Teja", email = "saitejavelpula.nss@gmail.com" }
+]
+description = "AI services for SagePick Application"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "matplotlib>=3.10.6",
-    "numpy>=2.3.3",
-    "pandas>=2.3.2",
-    "scikit-learn>=1.7.2",
-    "scipy>=1.16.2",
+    "fastapi>=0.119.0",
+    "pydantic-settings>=2.11.0",
+    "pyjwt>=2.10.1",
+    "uvicorn[standard]>=0.38.0",
 ]
