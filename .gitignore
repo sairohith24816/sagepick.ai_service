@@ -10,3 +10,11 @@ wheels/
 .venv
 
 .env
+
+backup/
+
+data/
+
+*.joblib
+
+wandb/
