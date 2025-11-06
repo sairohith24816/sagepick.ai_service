@@ -30,6 +30,12 @@ class Settings(BaseSettings):
 
     AUTO_TRAIN_ON_STARTUP: bool = True
 
+    LLM_PROVIDER: str = "gemini"
+    LLM_MODEL: str = "gemini-2.5-flash"
+    LLM_API_KEY: Optional[str] = "your key"
+    LLM_BASE_URL: Optional[str] = None
+    LLM_MAX_RESULTS: int = 5
+
     class Config:
         env_file = ".env"
 
