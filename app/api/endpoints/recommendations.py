@@ -1,4 +1,8 @@
+import logging
+from typing import Any, Dict, Optional
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from app.api.deps import verify_token
 from app.core.recommender import (
@@ -8,9 +12,17 @@ from app.core.recommender import (
     recommend_for_user,
 )
 from app.core.scheduler import trigger_now
+from app.core.llm_search import LLMProviderError, search_movies
 from app.core.settings import settings
 
 router = APIRouter(prefix="/recommendations", tags=["recommendations"])
+logger = logging.getLogger(__name__)
+
+
+class LLMSearchRequest(BaseModel):
+    query: str
+    filters: Optional[Dict[str, Any]] = None
+    limit: Optional[int] = Field(default=None, ge=1)
 
 
 @router.get("/users/{user_id}")
@@ -49,6 +61,16 @@ async def manual_retrain(background_tasks: BackgroundTasks, _: dict = Depends(ve
 @router.get("/status")
 async def recommendations_status(_: dict = Depends(verify_token)):
     return model_status()
+
+
+@router.post("/llm-search")
+async def llm_search(payload: LLMSearchRequest, _: dict = Depends(verify_token)):
+    try:
+        items = search_movies(payload.query, filters=payload.filters, limit=payload.limit)
+    except (LLMProviderError, ValueError) as exc:
+        logger.warning("LLM search failed: %s", exc)
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return {"items": items}
 
 
 @router.get("/health")
