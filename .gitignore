@@ -1,20 +1,63 @@
-# Python-generated files
+# Python
 __pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
+develop-eggs/
 dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
 wheels/
-*.egg-info
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Virtual environments
-.venv
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
 
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
 .env
+.env.local
 
-backup/
+# Logs
+*.log
+logs/
 
-data/
+# OS
+.DS_Store
+Thumbs.db
 
+# Models and Cache
 *.joblib
+*.pkl
+*.h5
+*.keras
 
+# W&B
 wandb/
+
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
+
+# MinIO
+.minio/
