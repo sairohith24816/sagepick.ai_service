@@ -51,12 +51,8 @@ class Settings(BaseSettings):
     FAST_LLM: str = "meta-llama/llama-3.1-8b-instruct:free"  # Fast model for assessment
     SMART_LLM: str = "meta-llama/llama-3.1-70b-instruct"  # Smart model for final answers
     
-    # Tavily Configuration
-    TAVILY_API_KEY: Optional[str] = None
-    
     # Agent Configuration
     CONFIDENCE_THRESHOLD: int = 70  # Score threshold for direct answer vs deep search
-    MAX_SEARCH_RESULTS: int = 5
     
     class Config:
         env_file = ".env"
