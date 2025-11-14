@@ -1,7 +1,7 @@
 [project]
 name = "inference-service"
-version = "0.1.0"
-description = "Inference service for SagePick recommendation models"
+version = "0.3.0"
+description = "Inference service for SagePick with agentic movie recommendations"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -15,4 +15,12 @@ dependencies = [
     "joblib>=1.4.0",
     "pydantic-settings>=2.6.0",
     "httpx>=0.27.0",
+    "boto3>=1.34.0",
+    "google-generativeai>=0.8.0",
+    "langchain>=0.3.0",
+    "langchain-core>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "langchain-community>=0.3.0",
+    "langgraph>=0.2.0",
+    "tavily-python>=0.5.0",
 ]

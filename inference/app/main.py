@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="SagePick Inference Service",
-    description="Inference service for recommendation models",
-    version="0.1.0"
+    description="Inference service for recommendation models with vector search",
+    version="0.2.0"
 )
 
 # Configure CORS
@@ -38,8 +38,8 @@ async def root():
     """
     return {
         "service": "SagePick Inference Service",
-        "version": "0.1.0",
-        "description": "Inference service for recommendation models"
+        "version": "0.2.0",
+        "description": "Inference service for recommendation models",
     }
 
 

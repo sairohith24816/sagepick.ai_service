@@ -12,9 +12,21 @@ from app.models.schemas import (
     UpdateInferenceResponse,
     TrainTriggerResponse,
     RecommendationItem,
+    VectorSyncRequest,
+    VectorSyncResponse,
+    VectorSearchRequest,
+    VectorSearchResponse,
+    VectorStatusResponse,
+    MovieResult,
+)
+from app.models.agent_schemas import (
+    MovieSearchRequest,
+    MovieSearchResponse,
 )
 from app.services.model_manager import model_manager
 from app.services.recommender import recommend_for_user, recommend_for_movie, get_popular_items
+from app.services.vector_sync_service import vector_sync_service
+from app.agent.graph import run_agent
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -198,3 +210,125 @@ async def health_check():
         response["best_rmse"] = metadata.get("best_rmse")
     
     return response
+
+
+# ==================== Vector Database Endpoints ====================
+
+@router.post("/vector/sync", response_model=VectorSyncResponse)
+async def sync_vector_database(
+    request: VectorSyncRequest = Body(default=VectorSyncRequest())
+) -> VectorSyncResponse:
+    """
+    Sync vector database from S3 movie data.
+    Downloads movie CSV from S3, generates embeddings, and uploads to Qdrant.
+    
+    Args:
+        request: Sync configuration (force_recreate flag)
+        
+    Returns:
+        Sync status and statistics
+    """
+    try:
+        logger.info(f"Starting vector DB sync (force_recreate={request.force_recreate})...")
+        
+        result = await vector_sync_service.sync_from_s3(
+            force_recreate=request.force_recreate
+        )
+        
+        return VectorSyncResponse(**result)
+        
+    except Exception as e:
+        logger.error(f"Error syncing vector database: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/vector/search", response_model=VectorSearchResponse)
+async def search_vector_database(
+    request: VectorSearchRequest
+) -> VectorSearchResponse:
+    """
+    Search movies using natural language query.
+    Uses semantic search to find relevant movies based on description.
+    
+    Args:
+        request: Search parameters (query, limit, score_threshold)
+        
+    Returns:
+        List of matching movies with relevance scores
+    """
+    try:
+        results = await vector_sync_service.search_movies(
+            query=request.query,
+            limit=request.limit,
+            score_threshold=request.score_threshold
+        )
+        
+        return VectorSearchResponse(
+            success=True,
+            query=request.query,
+            count=len(results),
+            movies=[MovieResult(**r) for r in results]
+        )
+        
+    except Exception as e:
+        logger.error(f"Error searching vector database: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/vector/status", response_model=VectorStatusResponse)
+async def get_vector_database_status() -> VectorStatusResponse:
+    """
+    Get vector database status and statistics.
+    
+    Returns:
+        Database health, collection info, and movie count
+    """
+    try:
+        status = await vector_sync_service.get_status()
+        
+        return VectorStatusResponse(
+            healthy=status.get("healthy", False),
+            collection_exists=status.get("collection_exists", False),
+            total_movies=status.get("total_movies", 0),
+            collection_info=status.get("collection_info")
+        )
+        
+    except Exception as e:
+        logger.error(f"Error getting vector database status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==================== Agentic Search Endpoint ====================
+
+@router.post("/search", response_model=MovieSearchResponse)
+async def search_movies(request: MovieSearchRequest) -> MovieSearchResponse:
+    """
+    Intelligent movie search using agentic system.
+    
+    Uses a multi-agent workflow:
+    - Assessment: Analyzes query confidence (fast LLM)
+    - High confidence (≥70%): Direct answer (fast LLM)
+    - Low confidence (<70%): Deep research (vector + tavily) → final answer (smart LLM)
+    
+    Args:
+        request: Search request with user query
+        
+    Returns:
+        Natural language answer with recommended movies
+    """
+    try:
+        logger.info(f"Agent search: {request.query}")
+        
+        # Run the agent graph
+        result = await run_agent(request.query)
+        
+        return MovieSearchResponse(
+            answer=result["answer"],
+            movies=result["movies"],
+            confidence=result["confidence"],
+            route_taken=result["route_taken"]
+        )
+        
+    except Exception as e:
+        logger.error(f"Error in agent search: {e}")
+        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
