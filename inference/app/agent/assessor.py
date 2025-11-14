@@ -80,13 +80,21 @@ def create_assessment_agent() -> Runnable:
 1. Read the query carefully
 2. Assess your confidence honestly (0-100)
 3. Identify query type
-4. List 3-5 movies you already know (if confidence > 50%)
+4. List 3-5 ACTUAL MOVIE TITLES you already know (if confidence > 50%)
+   - **CRITICAL**: suggested_movies must ONLY contain real movie titles (e.g., "Inception", "The Matrix")
+   - **NEVER** put themes, genres, or keywords here (e.g., NOT "drama", "hero", "thriller")
+   - If you don't know specific movie titles, leave this list EMPTY
 5. Describe what you know
 6. Describe what needs research
-7. Extract key themes/keywords from the query
+7. Extract key themes/keywords from the query (separate field, not in suggested_movies!)
 8. Explain your reasoning
 
 **BE HONEST**: If you're unsure, say so! It's better to research than give wrong recommendations.
+
+**IMPORTANT DISTINCTION:**
+- suggested_movies = ["Inception", "The Matrix", "Blade Runner"] ✅ CORRECT
+- suggested_movies = ["sci-fi", "thriller", "dream", "hero"] ❌ WRONG - these are themes!
+- themes = ["sci-fi", "thriller", "dream", "hero"] ✅ CORRECT place for keywords
 
 **EXAMPLES:**
 
@@ -111,6 +119,20 @@ Output:
 - Missing: Films that specifically combine BOTH AI ethics AND noir style, recent releases, deeper thematic analysis
 - Themes: ["artificial intelligence", "consciousness", "ethics", "noir", "dystopia", "identity"]
 - Reasoning: Medium-low confidence. I know some AI films and noir films separately, but finding the intersection requires research. The specific combination is nuanced.
+
+---
+
+Query: "Give me some thriller movies"
+Output:
+- Confidence: 60%
+- Type: thematic
+- Suggested Movies: ["The Silence of the Lambs", "Se7en", "Zodiac", "Gone Girl"]
+- Known: Many classic thriller films
+- Missing: User's specific preferences, recent thrillers, subgenre details
+- Themes: ["thriller", "suspense", "mystery", "crime"]
+- Reasoning: Medium confidence. Query is broad but I know thriller films. Research will help find better matches for user's taste.
+
+NOTE: See how suggested_movies contains ONLY movie titles, never "thriller" or "suspense" keywords!
 
 ---
 

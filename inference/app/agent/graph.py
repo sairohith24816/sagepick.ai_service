@@ -52,6 +52,8 @@ def direct_answer_node(state: AgentState) -> AgentState:
     state["answer"] = result["answer"]
     state["recommended_movies"] = result["movies"]
     
+    logger.info(f"Direct answer returning {len(result['movies'])} movies: {result['movies']}")
+    
     return state
 
 
@@ -81,6 +83,8 @@ def final_answer_node(state: AgentState) -> AgentState:
     
     state["answer"] = result["answer"]
     state["recommended_movies"] = result["movies"]
+    
+    logger.info(f"Final answer returning {len(result['movies'])} movies: {result['movies']}")
     
     return state
 

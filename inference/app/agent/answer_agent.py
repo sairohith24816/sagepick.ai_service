@@ -2,12 +2,80 @@
 Answer generation agents (direct and final).
 """
 import logging
+from typing import List
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+def _filter_movie_titles(movie_list: List[str]) -> List[str]:
+    """
+    Filter out non-movie entries (themes, genres, keywords) from the movie list.
+    
+    Args:
+        movie_list: List that may contain movie titles and/or keywords
+        
+    Returns:
+        Filtered list containing only likely movie titles
+    """
+    if not movie_list:
+        return []
+    
+    # Common keywords/genres/themes that are NOT movie titles
+    # These should be filtered out
+    non_movie_keywords = {
+        # Genres
+        'action', 'adventure', 'animation', 'comedy', 'crime', 'documentary',
+        'drama', 'fantasy', 'horror', 'mystery', 'romance', 'sci-fi', 'thriller',
+        'western', 'musical', 'war', 'biography', 'family', 'sport',
+        # Themes/concepts
+        'hero', 'villain', 'love', 'revenge', 'redemption', 'betrayal',
+        'sacrifice', 'friendship', 'loyalty', 'courage', 'honor', 'justice',
+        'freedom', 'destiny', 'fate', 'death', 'life', 'hope', 'fear',
+        'dream', 'nightmare', 'reality', 'illusion', 'time', 'space',
+        # Adjectives commonly used as themes
+        'dark', 'light', 'epic', 'intense', 'emotional', 'powerful',
+        'suspenseful', 'thrilling', 'scary', 'funny', 'sad', 'happy',
+        # Common query words
+        'movie', 'movies', 'film', 'films', 'cinema', 'picture', 'flick'
+    }
+    
+    filtered = []
+    for item in movie_list:
+        if not item or not isinstance(item, str):
+            continue
+            
+        # Normalize for comparison
+        normalized = item.strip().lower()
+        
+        # Skip if empty
+        if not normalized:
+            continue
+        
+        # Skip single words that match common keywords/genres
+        # (but allow multi-word entries as they're more likely real titles)
+        words = normalized.split()
+        if len(words) == 1 and normalized in non_movie_keywords:
+            logger.warning(f"Filtered out keyword/theme from movies list: '{item}'")
+            continue
+        
+        # Skip if it's just a genre/theme word without capitalization hints
+        # Real movie titles usually have proper capitalization
+        if len(words) == 1 and normalized == item:  # all lowercase single word
+            logger.warning(f"Filtered out lowercase single word from movies list: '{item}'")
+            continue
+            
+        # Keep this entry
+        filtered.append(item)
+    
+    logger.info(f"Filtered movies: {len(movie_list)} -> {len(filtered)}")
+    if len(movie_list) != len(filtered):
+        logger.info(f"Removed: {set(movie_list) - set(filtered)}")
+    
+    return filtered
 
 
 def generate_direct_answer(question: str, assessment: dict) -> dict:
@@ -58,9 +126,13 @@ Provide your recommendation."""
             "themes": ", ".join(assessment.get("themes", []))
         })
         
+        # Filter out any themes/keywords that snuck into suggested_movies
+        raw_movies = assessment.get("suggested_movies", [])
+        filtered_movies = _filter_movie_titles(raw_movies)
+        
         return {
             "answer": response.content,
-            "movies": assessment.get("suggested_movies", [])
+            "movies": filtered_movies
         }
         
     except Exception as e:
@@ -144,12 +216,13 @@ Based on this research, provide your movie recommendations."""
             "movie_details": structured_context
         })
         
-        # Extract movie names from research
-        movies = research_data.get("movie_names", [])
+        # Extract movie names from research and filter
+        raw_movies = research_data.get("movie_names", [])
+        filtered_movies = _filter_movie_titles(raw_movies)
         
         return {
             "answer": response.content,
-            "movies": movies
+            "movies": filtered_movies
         }
         
     except Exception as e:
