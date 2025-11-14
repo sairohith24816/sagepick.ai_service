@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.log
+*.egg-info/
+.env
+.env.*
+.venv/
+.python-version
+uv.lock
