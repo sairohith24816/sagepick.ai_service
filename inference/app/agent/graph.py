@@ -56,7 +56,7 @@ def direct_answer_node(state: AgentState) -> AgentState:
 
 
 async def research_node(state: AgentState) -> AgentState:
-    """Deep search using vector + tavily tools."""
+    """Deep search using the vector search tool."""
     logger.info("=== RESEARCH NODE ===")
     
     research_data = await deep_search_research(
@@ -100,7 +100,7 @@ def create_agent_graph():
     Flow:
     1. Assessment (fast LLM) -> confidence score
     2. If confidence >= 70: Direct Answer (fast LLM) -> END
-    3. If confidence < 70: Research (vector + tavily) -> Final Answer (smart LLM) -> END
+    3. If confidence < 70: Research (vector search) -> Final Answer (smart LLM) -> END
     """
     
     workflow = StateGraph(AgentState)

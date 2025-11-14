@@ -1,7 +1,7 @@
 
 services:
-  train-service:
-    container_name: sagepick-train
+  inference-service:
+    container_name: sagepick-ai
     build:
       context: .
       dockerfile: Dockerfile

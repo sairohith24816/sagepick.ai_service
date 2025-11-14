@@ -56,7 +56,7 @@ class RouteDecision(BaseModel):
 class MovieSearchResult(BaseModel):
     """Result from a movie search tool."""
     
-    source: str = Field(..., description="Source of the result (vector, tmdb, tavily)")
+    source: str = Field(..., description="Source of the result (vector, tmdb)")
     movies: List[dict] = Field(default_factory=list, description="List of movie results")
     summary: str = Field(default="", description="Summary of findings")
 
@@ -74,7 +74,6 @@ class AgentState(BaseModel):
     # Research stage (for deep search)
     vector_results: Optional[MovieSearchResult] = None
     tmdb_results: Optional[MovieSearchResult] = None
-    tavily_results: Optional[MovieSearchResult] = None
     
     # Final output
     answer: Optional[str] = None

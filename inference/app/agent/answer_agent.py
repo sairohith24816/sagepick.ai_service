@@ -73,36 +73,36 @@ Provide your recommendation."""
 
 def generate_final_answer(question: str, assessment: dict, research_data: dict) -> dict:
     """
-    Generate final answer using smart LLM with research data.
+    Generate final answer using smart LLM with vector research data.
     
     Args:
         question: User's query
         assessment: Initial assessment
-        research_data: Results from vector and tavily search
-        
+        research_data: Results from semantic vector search
+    
     Returns:
         Dict with answer and movie list
     """
     try:
-        system_prompt = """You are an expert movie recommendation system. You have researched the user's query using multiple sources.
+        system_prompt = """You are an expert movie recommendation system. You have researched the user's query using a curated semantic vector database of movies.
 
 Your task:
-1. Synthesize information from vector search and web search
+1. Synthesize the vector search findings
 2. Recommend 5-10 movies that best match the query
-3. Provide brief, engaging descriptions
+3. Provide brief, engaging descriptions grounded in the provided metadata
 4. Be confident and helpful
 
-Focus on quality over quantity. Only recommend movies you found in the research."""
+Focus on quality over quantity. Only recommend movies present in the research batch."""
 
         human_prompt = """User Query: {question}
 
 == RESEARCH RESULTS ==
 
-Vector Search Results:
+Vector Search Summary:
 {vector_results}
 
-Web Search Results:
-{tavily_results}
+Structured Movie Hits:
+{movie_details}
 
 ====================
 
@@ -124,12 +124,24 @@ Based on this research, provide your movie recommendations."""
         
         # Format research data
         vector_results = research_data.get("vector_summary", "No vector results")
-        tavily_results = research_data.get("tavily_summary", "No web results")
+        movie_details = research_data.get("movie_details", [])
+        
+        formatted_details = []
+        for movie in movie_details:
+            title = movie.get("title", "Unknown")
+            overview = movie.get("overview", "No overview available")
+            genres = movie.get("genres", "")
+            year = movie.get("release_date", "")[:4]
+            score = movie.get("score", 0)
+            formatted_details.append(
+                f"- {title} ({year or 'N/A'}) | genres: {genres} | relevance: {score:.2f}\n  {overview[:200]}..."
+            )
+        structured_context = "\n".join(formatted_details) if formatted_details else "No structured movie hits available."
         
         response = chain.invoke({
             "question": question,
             "vector_results": vector_results,
-            "tavily_results": tavily_results
+            "movie_details": structured_context
         })
         
         # Extract movie names from research

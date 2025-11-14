@@ -308,7 +308,7 @@ async def search_movies(request: MovieSearchRequest) -> MovieSearchResponse:
     Uses a multi-agent workflow:
     - Assessment: Analyzes query confidence (fast LLM)
     - High confidence (≥70%): Direct answer (fast LLM)
-    - Low confidence (<70%): Deep research (vector + tavily) → final answer (smart LLM)
+    - Low confidence (<70%): Deep research (vector search) → final answer (smart LLM)
     
     Args:
         request: Search request with user query
